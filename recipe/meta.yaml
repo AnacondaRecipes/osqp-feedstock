@@ -53,8 +53,8 @@ test:
     - osqppurepy
   requires:
     # some of the tests need mkl-specific solvers
-    - blas=*=mkl                     # [x86_64]
-    - cvxopt
+    #- blas=*=mkl                     # [x86_64]
+      # - cvxopt
     - pytest
     - setuptools
     - pip
