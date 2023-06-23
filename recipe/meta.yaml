@@ -1,61 +1,47 @@
-{% set osqp_version = "0.6.2" %}
-{% set qdldl_version = "0.1.5" %}
+{% set version = "0.6.3" %}
+{% set name = "osqp" %}
 
 package:
-  name: osqp
-  # version: {{ osqp_version }}
-  # upstream did not tag extra 0.6.2.post0; remove for next version!
-  version: {{ osqp_version + ".post0" }}
+  name: {{ name }}
+  version: {{ version }}
 
 source:
-  - url: https://github.com/oxfordcontrol/osqp-python/archive/v{{ osqp_version }}.tar.gz
-    fn: osqp-python-{{ osqp_version }}.tar.gz
-    sha256: 7f8d4588f7173e2abb72570c27981168ae3142c8356af52a41e500695ee3d1bf
-    patches:
-    - patches/0001-setup-use-NMake-on-windows.patch
-    - patches/0002-setup-do-not-use-different-output-folder-on-windows.patch
-    - patches/0003-also-use-NMake-in-codegen.patch
-    - patches/0004-Disable-MKL-Tests-on-nonx86.patch     # [not x86_64]
-    # backport osqp/osqp-python#51 to break circular dependency with cvxpy;
-    # while this contains basically only testing changes, it also bumps to 0.6.2.post0
-    - patches/0005-Switch-from-CVXPY-ECOS-to-CVXOPT-as-a-test-dependenc.patch
-
-  - url: https://github.com/oxfordcontrol/osqp/archive/v{{ osqp_version }}.tar.gz
-    fn: osqp-{{ osqp_version }}.tar.gz
-    sha256: d973c33c3164caa381ed7387375347a46f7522523350a4e51989479b9d3b59c7
-    folder: osqp_sources
-    patches:
-     - patches/0001-reflect-new-mkl_rt-name.patch
-
-  - url: https://github.com/oxfordcontrol/qdldl/archive/v{{ qdldl_version }}.tar.gz
-    fn: qdldl-{{ qdldl_version }}.tar.gz
-    sha256: 2868b0e61b7424174e9adef3cb87478329f8ab2075211ef28fe477f29e0e5c99
-    folder: osqp_sources/lin_sys/direct/qdldl/qdldl_sources
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 03e460e683ec2ce0f839353ddfa3c4c8ffa509ab8cf6a2b2afbb586fa453e180
+  patches:
+    - patches/0001-Disable-MKL-Tests-on-nonx86.patch     # [not x86_64]
+    - patches/0002-use-ninja-universally.patch
+    - patches/0003-point-to-our-own-builds.patch
+    - patches/0004-do-not-rebuild-libosqp-here.patch
+    - patches/0005-disable-codegen-ABI-is-not-compatible.patch
 
 build:
-  number: 4
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  number: 0
+  script:
+    - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
 requirements:
   build:
-    - python                                 # [build_platform != target_platform]
-    - cross-python_{{ target_platform }}     # [build_platform != target_platform]
-    - numpy                                  # [build_platform != target_platform]
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - cmake
-    - make                           # [unix]
+    - ninja
+    - patch  # [not win]
+    - m2-patch  # [win]
   host:
     - python
+    - setuptools_scm
+    - setuptools
     - pip
-    - numpy
+    - wheel
+    - numpy  {{ numpy  }}
+    - libosqp {{ version }}
   run:
     - python
     - {{ pin_compatible('numpy') }}
     - qdldl-python
-    # source uses scipy.random, which got removed
-    - scipy <1.9
-    - vs2015_runtime                 # [win]
+    - scipy
+      # - vs2015_runtime                 # [win]
   run_constrained:
     # since paradiso directly depends on the SO name, which was changed then
     - mkl >=2022.0                   # [win]
@@ -68,17 +54,14 @@ test:
   requires:
     # some of the tests need mkl-specific solvers
     - blas=*=mkl                     # [x86_64]
-    # codegen interface requires compiler + cmake
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - make                           # [unix]
-    - cmake
     - cvxopt
     - pytest
     - setuptools
-  # Disabled tests due to issues in QEMU, see https://github.com/scipy/scipy/issues/14560
-  commands:                           # [not ppc64le]
-    - python -m pytest --pyargs osqp  # [not ppc64le]
+    - pip
+  commands:
+    - pip check
+    # codegen tests are disabled because they require an incompatible ABI, see patches
+    - python -m pytest --pyargs osqp -k "not codegen"
 
 about:
   home: https://osqp.org/
@@ -88,11 +71,10 @@ about:
   summary: 'Python interface for OSQP, the Operator Splitting QP Solver'
   description: |
     Python interface for OSQP, the Operator Splitting QP Solver.
-
     To use the `codegen` interface, install `cmake` and an appropriate
     compiler version. (We don't install this by default.)
-  doc_url: https://osqp.org/
-  dev_url: http://github.com/oxfordcontrol/osqp-python
+  doc_url: https://osqp.org/docs/get_started/python.html
+  dev_url: https://github.com/osqp/osqp-python
 
 extra:
   recipe-maintainers:
