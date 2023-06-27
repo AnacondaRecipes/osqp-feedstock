@@ -39,9 +39,9 @@ requirements:
   run:
     - python
     - {{ pin_compatible('numpy') }}
+    - numpy >=1.7
     - qdldl-python
-    - scipy
-      # - vs2015_runtime                 # [win]
+    - scipy  >=0.13.2
   run_constrained:
     # since paradiso directly depends on the SO name, which was changed then
     - mkl >=2022.0                   # [win]
@@ -52,11 +52,7 @@ test:
     - osqp.codegen
     - osqppurepy
   requires:
-    # some of the tests need mkl-specific solvers
-    #- blas=*=mkl                     # [x86_64]
-      # - cvxopt
     - pytest
-    - setuptools
     - pip
   commands:
     - pip check

@@ -54,7 +54,7 @@ index 39fc6be..47363cc 100644
 -        cg.codegen(work, folder, python_ext_name, project_type, compile_python_ext,
 -                   embedded, force_rewrite, float_flag, long_flag)
 +        warn(
-+            "conda-forge builds of osqp are built on shared libraries; "
++            "conda builds of osqp are built on shared libraries; "
 +            "by the design of osqp, these have a different Application "
 +            "Binary Interface (ABI) than those required for codegen, "
 +            "and this is therefore not supported."
