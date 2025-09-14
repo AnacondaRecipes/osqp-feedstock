@@ -8,6 +8,8 @@ package:
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: 0877552e325ff4cc1c676796ba482904eb4b66e750eff5b91df3273201f5ed00
+  patches:
+    - patches/0001-unvendor.patch 
 
 build:
   number: 0
@@ -16,26 +18,25 @@ build:
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - cmake
-    - ninja
+    - ninja-base
   host:
-    - python
     - pip
-    - pybind11
-    - scikit-build-core
-    - setuptools_scm
+    - python
     - setuptools
-    - numpy  {{ numpy }}
-    - blas
-    - openblas
+    - setuptools_scm
+    - scikit-build-core
+    - pybind11
+    - libosqp 1.0.0
   run:
     - python
-    - {{ pin_compatible('numpy') }}
-    - {{ pin_compatible('openblas') }}
-    - numpy >=1.7
-    - scipy  >=0.13.2
+    - setuptools
+    - numpy >=1.7.0
+    - scipy >=0.13.2
+    - libosqp # bounds through run_exports 
     - jinja2
     - joblib
 
@@ -44,9 +45,9 @@ test:
     - osqp
     - osqp.codegen
   requires:
-    - pytest >=6
-    - pytorch
     - pip
+    - pytorch
+    - pytest >=6
   commands:
     - pip check
     # codegen tests are disabled because they require an incompatible ABI
