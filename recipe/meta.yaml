@@ -1,66 +1,60 @@
-{% set version = "0.6.3" %}
 {% set name = "osqp" %}
+{% set version = "1.0.4" %}
 
 package:
   name: {{ name }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 03e460e683ec2ce0f839353ddfa3c4c8ffa509ab8cf6a2b2afbb586fa453e180
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 0877552e325ff4cc1c676796ba482904eb4b66e750eff5b91df3273201f5ed00
   patches:
-    - patches/0001-Disable-MKL-Tests-on-nonx86.patch     # [not x86_64]
-    - patches/0002-use-ninja-universally.patch
-    - patches/0003-point-to-our-own-builds.patch
-    - patches/0004-do-not-rebuild-libosqp-here.patch
-    - patches/0005-disable-codegen-ABI-is-not-compatible.patch
+    - patches/0001-unvendor.patch 
 
 build:
   number: 0
-  script:
-    - {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+  skip: true # [py<38]
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
 requirements:
   build:
+    - {{ stdlib('c') }}
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - cmake
-    - ninja
-    - patch  # [not win]
-    - m2-patch  # [win]
+    - ninja-base
   host:
-    - python
-    - setuptools_scm
-    - setuptools
     - pip
-    - wheel
-    - numpy  {{ numpy  }}
-    - libosqp {{ version }}
+    - python
+    - setuptools
+    - setuptools_scm
+    - scikit-build-core
+    - pybind11
+    - libosqp 1.0.0
   run:
     - python
-    - {{ pin_compatible('numpy') }}
-    - numpy >=1.7
-    - qdldl-python
-    - scipy  >=0.13.2
-  run_constrained:
-    # since paradiso directly depends on the SO name, which was changed then
-    - mkl >=2022.0                   # [win]
+    - setuptools
+    - numpy >=1.7.0
+    - scipy >=0.13.2
+    - libosqp # bounds through run_exports 
+    - jinja2
+    - joblib
 
 test:
   imports:
     - osqp
     - osqp.codegen
-    - osqppurepy
   requires:
-    - pytest
     - pip
+    - pytorch
+    - pytest >=6
   commands:
     - pip check
-    # codegen tests are disabled because they require an incompatible ABI, see patches
+    # codegen tests are disabled because they require an incompatible ABI
     - python -m pytest --pyargs osqp -k "not codegen"
 
 about:
-  home: https://osqp.org/
+  home: https://osqp.org
   license: Apache-2.0
   license_family: Apache
   license_file: LICENSE
