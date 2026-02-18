@@ -12,7 +12,7 @@ source:
     - patches/0001-unvendor.patch 
 
 build:
-  number: 0
+  number: 1
   skip: true # [py<38]
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
@@ -46,12 +46,16 @@ test:
     - osqp.codegen
   requires:
     - pip
-    - pytorch
+    - pytorch  # [py<314]
     - pytest >=6
   commands:
     - pip check
     # codegen tests are disabled because they require an incompatible ABI
-    - python -m pytest --pyargs osqp -k "not codegen"
+    - python -m pytest --pyargs osqp -k "not codegen"  # [py<314]
+
+    # TODO: remove this once pytorch py314 available in the channel
+    - python -c "import osqp, pathlib; (pathlib.Path(osqp.__file__).parent/'tests'/'nn_test.py').unlink(missing_ok=True)"  # [py>=314]
+    - python -m pytest --pyargs osqp -k "not codegen and not nn"  # [py>=314]
 
 about:
   home: https://osqp.org
