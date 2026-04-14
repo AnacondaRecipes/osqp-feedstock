@@ -1,5 +1,5 @@
 {% set name = "osqp" %}
-{% set version = "1.0.4" %}
+{% set version = "1.1.1" %}
 
 package:
   name: {{ name }}
@@ -7,13 +7,13 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 0877552e325ff4cc1c676796ba482904eb4b66e750eff5b91df3273201f5ed00
+  sha256: 1719e6a88f2ec2bd5dab06131331d1433152fb222372832727d9eb5604d7acf4
   patches:
-    - patches/0001-unvendor.patch 
+    - patches/0001-unvendor.patch
 
 build:
-  number: 1
-  skip: true # [py<38]
+  number: 0
+  skip: true  # [py<38]
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
 
 requirements:
@@ -36,7 +36,7 @@ requirements:
     - setuptools
     - numpy >=1.7.0
     - scipy >=0.13.2
-    - libosqp # bounds through run_exports 
+    - libosqp  # bounds through run_exports
     - jinja2
     - joblib
 
@@ -52,7 +52,6 @@ test:
     - pip check
     # codegen tests are disabled because they require an incompatible ABI
     - python -m pytest --pyargs osqp -k "not codegen"  # [py<314]
-
     # TODO: remove this once pytorch py314 available in the channel
     - python -c "import osqp, pathlib; (pathlib.Path(osqp.__file__).parent/'tests'/'nn_test.py').unlink(missing_ok=True)"  # [py>=314]
     - python -m pytest --pyargs osqp -k "not codegen and not nn"  # [py>=314]
@@ -62,7 +61,7 @@ about:
   license: Apache-2.0
   license_family: Apache
   license_file: LICENSE
-  summary: 'Python interface for OSQP, the Operator Splitting QP Solver'
+  summary: Python interface for OSQP, the Operator Splitting QP Solver
   description: |
     Python interface for OSQP, the Operator Splitting QP Solver.
     To use the `codegen` interface, install `cmake` and an appropriate
