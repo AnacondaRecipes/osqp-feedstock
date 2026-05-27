@@ -30,6 +30,7 @@ requirements:
     - setuptools_scm
     - scikit-build-core
     - pybind11
+    - pybind11-abi
     - libosqp 1.0.0
   run:
     - python
